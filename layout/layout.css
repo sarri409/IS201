@@ -1,0 +1,30 @@
+body {
+    background-color: rgb(241, 241, 241);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.common {
+    background-color: white;
+    border: 2px solid white;
+    position: absolute;
+}
+.header {
+
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    height: 100px;
+    z-index: 2;
+    border-bottom: solid 1px #411475;
+}
+.left-align{
+    margin-left: 50px;
+}
+.menu-align{
+    margin-left: 1010px;
+}
+.font-color{
+    color: #23828f;
+}
+.title-color{
+    color: #0b3759;
+}
