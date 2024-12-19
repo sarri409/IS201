@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riddle Duel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f9;
+      color: #333;
+    }
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    .riddle-box {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .riddle-text {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    input {
+      width: calc(100% - 40px);
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      color: #fff;
+      background: #3498db;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .score-board, .timer {
+      margin-top: 20px;
+      font-size: 1.2rem;
+    }
+    .timer {
+      font-weight: bold;
+      color: #e74c3c;
+    }
+    .progress-bar-container {
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 5px;
+      margin: 10px auto;
+      height: 20px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #2ecc71;
+      width: 100%;
+      transition: width 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Riddle Duel</h1>
+    <div class="riddle-box">
+      <p class="riddle-text">Click "New Riddle" to start!</p>
+      <input type="text" id="answer-input" placeholder="Enter your answer" />
+      <button id="submit-answer">Submit Answer</button>
+      <button id="new-riddle">New Riddle</button>
+      <button id="stop-game">Stop</button>
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <p class="timer">Time Left: <span id="time-left">--</span> seconds</p>
+    </div>
+    <div class="score-board">
+      <p><strong>Your Score:</strong> <span id="user-score">0</span></p>
+      <p><strong>AI's Score:</strong> <span id="ai-score">0</span></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    const riddles = [
+      { question: "What has to be broken before you can use it?", answer: "egg" },
+      { question: "I’m tall when I’m young, and I’m short when I’m old. What am I?", answer: "candle" },
+      { question: "What has a head, a tail, is brown, and has no legs?", answer: "penny" },
+      { question: "What has keys but can’t open locks?", answer: "piano" },
+      { question: "What can you catch but not throw?", answer: "cold" }
+    ];
+
+    let userScore = 0;
+    let aiScore = 0;
+    let currentRiddle = null;
+    let timer = null;
+    let gameRunning = false;
+    const timeLimit = 15;
+    let timeLeft = timeLimit;
+
+    const riddleText = document.querySelector('.riddle-text');
+    const answerInput = document.getElementById('answer-input');
+    const userScoreSpan = document.getElementById('user-score');
+    const aiScoreSpan = document.getElementById('ai-score');
+    const timeLeftSpan = document.getElementById('time-left');
+    const progressBar = document.getElementById('progress-bar');
+
+    function getRandomRiddle() {
+      const randomIndex = Math.floor(Math.random() * riddles.length);
+      return riddles[randomIndex];
+    }
+
+    function newRiddle() {
+      if (!gameRunning) return;
+      currentRiddle = getRandomRiddle();
+      riddleText.textContent = currentRiddle.question;
+      answerInput.value = '';
+      resetTimer();
+      startTimer();
+    }
+
+    function submitAnswer() {
+      if (!gameRunning) return;
+      const userAnswer = answerInput.value.trim().toLowerCase();
+      if (!currentRiddle) {
+        alert("Click 'New Riddle' to start!");
+        return;
+      }
+
+      clearInterval(timer);
+
+      if (userAnswer === currentRiddle.answer) {
+        userScore++;
+        showConfetti();
+        alert("Correct! You got it right!");
+      } else {
+        aiScore++;
+        alert(`Wrong! The correct answer was: ${currentRiddle.answer}`);
+      }
+
+      updateScores();
+      newRiddle();
+    }
+
+    function showConfetti() {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function startTimer() {
+      timeLeft = timeLimit;
+      timeLeftSpan.textContent = timeLeft;
+      progressBar.style.width = "100%";
+      progressBar.style.backgroundColor = "#2ecc71";
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timeLeftSpan.textContent = timeLeft;
+
+        const progressPercentage = (timeLeft / timeLimit) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+
+        if (timeLeft <= 5) {
+          progressBar.style.backgroundColor = "#e74c3c"; // Red for urgency
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          aiScore++;
+          alert("Time's up! The AI scores this round.");
+          updateScores();
+          newRiddle();
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      progressBar.style.width = "100%";
+      progressBar.style.backgroundColor = "#2ecc71";
+      timeLeftSpan.textContent = "--";
+    }
+
+    function updateScores() {
+      userScoreSpan.textContent = userScore;
+      aiScoreSpan.textContent = aiScore;
+    }
+
+    function stopGame() {
+      gameRunning = false;
+      resetTimer();
+      riddleText.textContent = "Game stopped. Click 'New Riddle' to start again!";
+      currentRiddle = null;
+    }
+
+    document.getElementById('new-riddle').addEventListener('click', () => {
+      gameRunning = true;
+      newRiddle();
+    });
+    document.getElementById('submit-answer').addEventListener('click', submitAnswer);
+    document.getElementById('stop-game').addEventListener('click', stopGame);
+  </script>
+</body>
+</html>
